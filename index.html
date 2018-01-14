@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		.paginator div.active{
+			background: #eee;
+		}
+	</style>
+</head>
+<body>
+	<div id="content"></div>
+	<script>
+		(function(){
+			var list = [
+				{name:"Tom", age:18},
+				{name:"Sam", age:88},
+				{name:"Frodo", age:12},
+				{name:"Alan", age:32},
+				{name:"John", age:22},
+				{name:"Brad", age:56},
+				{name:"Nick", age:21},
+				{name:"Pipin", age:72},
+				{name:"Gnom", age:10},
+				{name:"Freak", age:12},
+				{name:"Jack", age:13},
+				{name:"Rick", age:17},
+				{name:"Ed", age:43}
+			];
+			var content = document.querySelector('#content');
+
+			var events = {
+				chngPage: function(e){ // смена страницы (перемещение по пагинации)
+					var index = e.target.getAttribute('data-index');
+					var tables = document.querySelectorAll('table');
+					tables.forEach(function(table){
+						var tableIndex = table.getAttribute('data-index');
+						table.style.display = 'none';
+						table.classList.remove('active');
+						if(index == tableIndex){
+							table.style.display = 'inline-block';
+							table.classList.add('active');
+						}
+					})
+					events.refreshPaginator();
+				},
+				nextPage: function(e){
+					var activeTable = document.querySelector('table.active');
+					var activeTableIndex = activeTable.getAttribute('data-index');
+					var tables = document.querySelectorAll('table');
+					tables.forEach(function(table,index){
+						table.style.display = 'none';
+						table.classList.remove('active');
+						if(index == activeTableIndex){
+							table.style.display = 'inline-block';
+							table.classList.add('active');
+						}
+					})
+					events.refreshPaginator();
+				},
+				refreshPaginator: function(){
+					var activeTable = document.querySelector('table.active');
+					var activeTableIndex = activeTable.getAttribute('data-index');
+					var tables = document.querySelectorAll('table');
+					if(activeTableIndex == tables.length){
+						document.getElementById('nextBtn').style.display = 'none';
+					}else{
+						document.getElementById('nextBtn').style.display = 'inline-block';
+					}
+				}
+			};
+
+			var groups = delimiter(list,5);
+
+			/**
+			Делит массив на подмассивы. Каждый подмассив это будущая отдельная табличка
+			**/
+			function delimiter(list,n){
+				var i, tmp = [];
+			  for (i = 0; i < list.length; i += n) {
+			    tmp.push(list.slice(i, i + n));
+			  }
+			  return tmp;
+			}
+
+			// перебираем каждый подмассив, создаем для него таблицу и добавляем его на страницу
+			for(var i = 0; i<groups.length; i++){
+				var group = groups[i];
+				var table = createTable(group,i+1);
+				content.appendChild(table);
+			}
+
+			/**
+			Функция оздания таблицы
+			**/
+			function createTable(list,index){
+				var table = document.createElement('table');
+				table.style.border = '1px solid #ccc';
+				if(index!=1){ // скрываем все таблицы кроме первой
+					table.style.display = 'none';
+				}else{
+					table.classList.add('active');
+				}
+				table.setAttribute('data-index',index);
+				for(var i = 0; i<list.length; i++){
+					var row = list[i];
+					var tr = document.createElement('tr');
+					var tdName = document.createElement('td');
+					var tdAge = document.createElement('td');
+					tdName.innerText = row.name;
+					tdAge.innerText = row.age;
+					tr.appendChild(tdName);
+					tr.appendChild(tdAge);
+					table.appendChild(tr);
+				}
+				return table;
+			}
+
+			var paginator = paginator(list,5);
+
+			/**
+			Функция оздания блока пагинации
+			**/
+			function paginator(list,n){
+				var count = Math.ceil(list.length / n); // узнаем количество блоков
+				var pagBlock = document.createElement('div');
+				pagBlock.classList.add('paginator');
+				for(var i = 1; i<count+1; i++){
+					var pagBtn = document.createElement('div');
+					pagBtn.style.display = 'inline-block';
+					pagBtn.style.border = '1px solid #ccc';
+					pagBtn.style.padding = '5px 10px';
+					pagBtn.style.cursor = 'pointer';
+					pagBtn.setAttribute('data-index',i);
+					pagBtn.onclick = events.chngPage;
+					pagBtn.innerText = i;
+					pagBlock.appendChild(pagBtn);
+				}
+				if(count>2) {
+					pagBlock.appendChild(addNextBtn());
+				}
+
+				function addNextBtn(){
+					var btn = document.createElement('div');
+					btn.style.display = 'inline-block';
+					btn.style.border = '1px solid #ccc';
+					btn.style.padding = '5px 10px';
+					btn.style.cursor = 'pointer';
+					btn.setAttribute('id','nextBtn');
+					btn.innerText = '>';
+					btn.onclick = events.nextPage;
+					return btn;
+				}
+
+				return pagBlock;
+			}
+
+
+
+			content.appendChild(paginator);
+
+
+		})()
+		
+	</script>
+</body>
+</html>
